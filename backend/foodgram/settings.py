@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -25,7 +26,7 @@ SECRET_KEY = 'django-insecure-+wt5ibm1!p_km#42$&c0q=_+r^q!+)+f!8b*p$k!h_ik6yc*(a
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -37,6 +38,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    'rest_framework.authtoken',
+    'api',
+    'users',
+    'recipes',
+    'djoser',
 ]
 
 MIDDLEWARE = [
@@ -117,9 +124,33 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
+# STATIC_URL = "/static/"
+# STATIC_ROOT = os.path.join(BASE_DIR, "static")
+# STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
+
+
+
 STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'collected_static'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+AUTH_USER_MODEL = 'users.Users'
+
+DJOSER = {
+    'LOGIN_FIELD': 'email',
+}
+
+REST_FRAMEWORK = {
+    
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.TokenAuthentication',
+        # 'rest_framework.authentication.BasicAuthentication',
+        # 'rest_framework.authentication.SessionAuthentication',
+
+    ),
+   
+}

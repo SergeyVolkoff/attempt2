@@ -1,6 +1,17 @@
 version: '3.3'
 services:
 
+  backend:
+    container_name: foodgram-backend
+    build: ../backend
+    # env_file: ../.env
+    # volumes:
+    #   - static:/backend_static
+    #   - media:/app/media
+    # # command: cp -r /app/collected_static/. backend_static/static/ 
+    # depends_on:
+    #   - db
+
   frontend:
     container_name: foodgram-front
     build: ../frontend
