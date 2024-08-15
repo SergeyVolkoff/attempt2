@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
 
+
 from users.models import Users
 
 class Tag(models.Model):
@@ -54,13 +55,14 @@ class Recipe(models.Model):
     )
     tags = models.ManyToManyField(
         Tag,
-        verbose_name="Список id тегов"
+        verbose_name="Список id тегов",
+        related_name='recipe_as_tag',
     )
     ingredients = models.ManyToManyField(
         Ingredient,
         verbose_name='Список ингредиентов',
         through='RecipeIngredient',
-        related_name='recipes'
+        related_name='recipe_as_ingredients'
     )
     image = models.ImageField(
         upload_to='recipes/images/'
@@ -110,6 +112,19 @@ class RecipeIngredient(models.Model):
             MinValueValidator(
                 1, message='Ингредиентов не может быть меньше 1')]
     )
+
+
+    class Meta:
+        verbose_name = 'Кол-во ингридиента в рецепте'
+        verbose_name_plural = 'Кол-во ингридиента в рецепте'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['recipe', 'ingredient'],
+                name='Уникальное значение')]
+
+    def __str__(self):
+        return f'{self.ingredient}–{self.quantity}'
+    
 
 class ShoppingByRecipe(models.Model):
     recipe = models.ForeignKey(
