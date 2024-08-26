@@ -105,7 +105,7 @@ class RecipeIngredient(models.Model):
         on_delete=models.CASCADE,
         verbose_name='Рецепт'
     )
-    quantity = models.PositiveSmallIntegerField(
+    amount = models.PositiveSmallIntegerField(
         verbose_name='Количество',
         default=1,
         validators=[
@@ -123,7 +123,7 @@ class RecipeIngredient(models.Model):
                 name='Уникальное значение')]
 
     def __str__(self):
-        return f'{self.ingredient}–{self.quantity}'
+        return f'{self.ingredient}–{self.amount}'
     
 
 class ShoppingByRecipe(models.Model):

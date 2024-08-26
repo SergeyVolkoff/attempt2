@@ -5,7 +5,8 @@ from djoser import views as djoser_views
 from .views import (RecipeViewSet,
                     UserViewSet,
                     TagViewSet,
-                    IngredientViewSet
+                    IngredientViewSet,
+                    Subscriptions
                     )
 
 router = routers.DefaultRouter()
