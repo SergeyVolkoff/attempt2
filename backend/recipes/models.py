@@ -37,8 +37,8 @@ class Ingredient(models.Model):
 
     class Meta:
         # ordering = ('name',)
-        verbose_name = 'Ингридиент'
-        verbose_name_plural = 'Ингридиенты'
+        verbose_name = 'Ингредиент'
+        verbose_name_plural = 'Ингредиенты'
 
     def __str__(self):
         return self.name
@@ -97,7 +97,7 @@ class RecipeIngredient(models.Model):
         Ingredient,
         related_name='recipe',
         on_delete=models.CASCADE,
-        verbose_name='Ингридиент'
+        verbose_name='Ингредиент'
     )
     recipe = models.ForeignKey(
         Recipe,
@@ -153,7 +153,7 @@ class ShoppingByRecipe(models.Model):
     def __str__(self):
         return f'{self.recipe} {self.user}'
 
-class FavoriteRecipes(models.Model):
+class FavoriteRecipe(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         related_name='favorite',
