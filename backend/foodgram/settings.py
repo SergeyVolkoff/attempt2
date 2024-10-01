@@ -18,7 +18,8 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'key')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # DEBUG = True
-DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
+# DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
+DEBUG = True
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
 
@@ -38,6 +39,7 @@ INSTALLED_APPS = [
     'users',
     'recipes',
     'djoser',
+    'django_filters',
 ]
 
 MIDDLEWARE = [

@@ -1,5 +1,5 @@
 from django.db import models
-from django.core.validators import MaxValueValidator, MinValueValidator
+from django.core.validators import MinValueValidator
 
 
 from users.models import Users
@@ -129,26 +129,22 @@ class RecipeIngredient(models.Model):
 class ShoppingByRecipe(models.Model):
     recipe = models.ForeignKey(
         Recipe,
-        related_name='shopp_recipe',
+        # related_name='shopp_recipe',
         verbose_name='Список покупок',
         on_delete=models.CASCADE,
     )
     user = models.ForeignKey(
         Users,
         verbose_name='Пользователь покупок',
-        related_name='shopping_cart',
+        # related_name='shopping_cart',
         on_delete=models.CASCADE,
     )
 
     class Meta:
+        default_related_name = 'recipe_shopping'
         verbose_name = 'Рецепт для покупок'
         verbose_name_plural = 'Рецепты для покупок'
-        constraints = [
-            models.UniqueConstraint(
-                fields=['recipe', 'user'],
-                name='unique_user_recipe'
-            )
-        ]
+        
 
     def __str__(self):
         return f'{self.recipe} {self.user}'
@@ -156,13 +152,17 @@ class ShoppingByRecipe(models.Model):
 class FavoriteRecipe(models.Model):
     recipe = models.ForeignKey(
         Recipe,
-        related_name='favorite',
+        # related_name='recipe_favorite',
         verbose_name='Избранный рецепт',
         on_delete=models.CASCADE
     )
     user = models.ForeignKey(
         Users,
-        related_name='favorite',
+        # related_name='favorite',
         verbose_name='Пользователь',
         on_delete=models.CASCADE,
     )
+
+    class Meta:
+        default_related_name = 'recipe_favorite'
+

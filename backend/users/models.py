@@ -32,7 +32,7 @@ class Users(AbstractUser):
     )
     avatar = models.ImageField(
         verbose_name='Аватар',
-        upload_to='users/avatars',
+        upload_to='avatars',
         blank=True,
         null=True,
     )
@@ -50,7 +50,6 @@ class Users(AbstractUser):
 
 
 class Subscription(models.Model):
-    """Модель подписки."""
 
     user = models.ForeignKey(
         Users,
