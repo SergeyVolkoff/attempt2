@@ -1,28 +1,27 @@
-import base64
-import time
+import random
+import string
 from django.db.models import Sum
 from django.forms import ValidationError
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from djoser.views import UserViewSet as BaseUserViewSet
-from recipes.models import (FavoriteRecipe, Ingredient, Recipe,
-                            RecipeIngredient, ShoppingByRecipe, Tag)
+from djoser.views import UserViewSet
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
+from rest_framework.generics import (ListAPIView)
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.generics import (ListAPIView, RetrieveUpdateDestroyAPIView,
-                                     get_object_or_404)
-from users.models import Subscription, Users
 
+from recipes.models import (FavoriteRecipe, Ingredient, Recipe,
+                            RecipeIngredient, ShoppingByRecipe, Tag)
+from users.models import Subscription, Users
 from .filters import IngredientFilter, RecipeFilter
 from .pagination import RecipePagination
 from .permissions import IsAdminOrReadOnly, IsOwnerOrReadOnly
-from .serializers import (AvatarSerialiser,
-                          FoodUserSerializer,
+from .serializers import (AvatarSerialiser, FoodUserSerializer,
                           IngredientSerializer, RecipeSerializerGet,
                           RecipeSerializerSet, RecipeSerializerShort,
+                          ShowSubscriberSerializer,
                           SubscriberSerializer, TagSerializer)
 
 
@@ -31,6 +30,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = IngredientSerializer
     filterset_class = IngredientFilter
     permission_classes = (AllowAny,)
+    filter_backends = (DjangoFilterBackend,)
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -47,7 +47,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filterset_class = RecipeFilter
 
     def get_serializer_class(self):
-        if self.action in ('create', 'update', 'partial_update','putch'):
+        if self.action in ('create', 'update', 'partial_update'):
             return RecipeSerializerSet
         return RecipeSerializerGet
 
@@ -135,16 +135,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
         )
 
 
-class UserViewSet(BaseUserViewSet):
+class UserViewSet(UserViewSet):
     queryset = Users.objects.all()
     serializer_class = FoodUserSerializer
     permission_classes = (IsAdminOrReadOnly,)
     pagination_class = RecipePagination
-    
-    def get_permissions(self):
-        if self.action == 'me':
-            self.permission_classes = (IsAuthenticated,)
-        return super().get_permissions()
 
     def add_subscribe(self, serializer):
         serializer.is_valid(raise_exception=True)
@@ -160,6 +155,20 @@ class UserViewSet(BaseUserViewSet):
         return Response(
             {'message': message['error']},
             status=status.HTTP_400_BAD_REQUEST)
+
+    def get_permissions(self):
+        if self.action == 'me':
+            self.permission_classes = (IsAuthenticated,)
+        return super().get_permissions()
+
+    @action(methods=['get'], detail=False,
+            permission_classes=[IsAuthenticated],
+            url_name='me')
+    def me(self, request, *args, **kwargs):
+        serializer = FoodUserSerializer(self.request.user,
+                                        context={'request': request}
+                                        )
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(detail=True,
             methods=['POST'],
@@ -188,17 +197,8 @@ class UserViewSet(BaseUserViewSet):
             context={'request': request}
         )
         return self.get_paginated_response(serializer.data)
-    
-    @action(methods=['get'], detail=False,
-            permission_classes=[IsAuthenticated],
-            url_name='me')
-    def me(self, request, *args, **kwargs):
-        serializer = FoodUserSerializer(self.request.user,
-                                        context={'request':request}
-                                        )
-        return Response(serializer.data,status=status.HTTP_200_OK)
 
-    @action(methods=['GET','PUT'],
+    @action(methods=['GET', 'PUT'],
             detail=False,
             permission_classes=(IsAuthenticated,),
             url_path='me/avatar', url_name='avatar',)
@@ -223,47 +223,17 @@ class UserViewSet(BaseUserViewSet):
         serializer.is_valid(raise_exception=True)
         request.user.avatar.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-###
-    # @action(
-    #     ['put','get'],
-    #     detail=False,
-    #     permission_classes=(IsAuthenticated,),
-    #     url_path='me/avatar',
-    #     url_name='avatar',
-    # )
-    # def avatar(self, request):
-    #     """Метод добавления аватара."""
-    #     serializer = AvatarSerialiser(
-    #         self.request.user,
-    #         data=request.data
-    #     )
-    #     serializer.is_valid(raise_exception=True)
-    #     avatar_instance = serializer.save()
 
-    #     # Получаем путь к файлу аватара
-    #     avatar_file_path = avatar_instance.avatar.path
 
-    #     # Читаем файл и кодируем его в base64
-    #     with open(avatar_file_path, "rb") as avatar_file:
-    #         encoded_string = base64.b64encode(avatar_file.read()).decode('utf-8')
+class SubscriberViewSet(ListAPIView):
+    serializer_class = ShowSubscriberSerializer
+    pagination_class = RecipePagination
+    permission_classes = (IsAuthenticated,)
 
-    #     # Форматируем строку для ответа
-    #     base64_avatar = f"data:image/png;base64,{encoded_string}"
+    def get_queryset(self):
+        user = self.request.user
+        return user.subscriber.all()
 
-    #     return Response(
-    #         {"avatar": base64_avatar},
-    #         status=status.HTTP_200_OK
-    #     )
-
-    # @avatar.mapping.delete
-    # def delete_avatar(self, request):
-    #     """Метод удаления аватара."""
-    #     serializer = AvatarSerialiser(
-    #         self.request.user,
-    #         data=request.data
-    #     )
-    #     serializer.is_valid(raise_exception=True)
-    #     request.user.avatar.delete()
-    #     return Response(status=status.HTTP_204_NO_CONTENT)
-    
-###
+def generate_short_url():
+    url_sub = ''.join(random.choices(string.ascii_letters + string.digits, k=3))
+    return "http:/localhost/s/" + url_sub

@@ -5,12 +5,12 @@ from users.models import Users
 
 
 class IngredientFilter(FilterSet):
-    name = filters.CharFilter(lookup_expr='istartswith')
+    name = filters.CharFilter(field_name='name',
+                              lookup_expr='istartswith')
 
     class Meta:
         model = Ingredient
         fields = ('name',)
-
 
 class RecipeFilter(FilterSet):
     tags = filters.ModelMultipleChoiceFilter(
@@ -20,7 +20,7 @@ class RecipeFilter(FilterSet):
     )
     author = filters.ModelChoiceFilter(
         queryset=Users.objects.all(),
-        lookup_expr='icontains'
+        # lookup_expr='icontains'
     )
     is_favorited = filters.BooleanFilter(method='is_favorited_filter',
                                          field_name='is_favorited'
